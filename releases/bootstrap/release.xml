@@ -1,0 +1,14 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+  <include file="./releases/bootstrap/src/devpilotai-bootstrap.xml"/>
+  <include file="./releases/bootstrap/data/devpilotai-inital_data.xml"/>
+
+  <changeSet id="7b5d3a24-1f19-4be6-bc64-e40da1bf436c" author="admin" labels="bootstrap">  
+    <tagDatabase tag="bootstrap"/>  
+  </changeSet>
+</databaseChangeLog>

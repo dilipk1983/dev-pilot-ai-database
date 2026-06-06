@@ -1,0 +1,43 @@
+services:
+  postgres-db:
+    container_name: DevPilotAi-DB
+    hostname: DevPilotAi-DB
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - TZ=UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - db-network
+
+
+  pgadmin:
+    container_name: pgadmin_local
+    image: dpage/pgadmin4:latest
+    ports:
+      - "8080:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - TZ=UTC
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - db-network
+    depends_on:
+      - postgres-db
+
+networks:
+  db-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  pgadmin_data:
