@@ -1,5 +1,4 @@
-# Seating Bossprod
-Project to deploy and update the Seating database - BOSSPROD_1.
+# Dev Pilot AI Database
 This repository uses Liquibase to manage database changes and Docker Compose to run the PostgreSQL database and pgAdmin locally.
 
 ## Prerequisites
