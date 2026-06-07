@@ -14,8 +14,13 @@ services:
       - TZ=UTC
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
-      - db-network
+      - shared-network
 
 
   pgadmin:
@@ -30,12 +35,12 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     networks:
-      - db-network
+      - shared-network
     depends_on:
       - postgres-db
 
 networks:
-  db-network:
+  shared-network:
     driver: bridge
 
 volumes:

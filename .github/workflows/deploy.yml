@@ -1,0 +1,56 @@
+name: Deploy Liquibase changes to Aiven
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-database:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java for Liquibase
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Make Liquibase executable
+        run: chmod +x ./lib/liquibase/liquibase
+
+      - name: Validate Liquibase changelog
+        env:
+          AIVEN_DB_HOST: ${{ secrets.AIVEN_DB_HOST }}
+          AIVEN_DB_PORT: ${{ secrets.AIVEN_DB_PORT }}
+          AIVEN_DB_NAME: ${{ secrets.AIVEN_DB_NAME }}
+          AIVEN_DB_USER: ${{ secrets.AIVEN_DB_USER }}
+          AIVEN_DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
+        run: |
+          LIQUIBASE_URL="jdbc:postgresql://${AIVEN_DB_HOST}:${AIVEN_DB_PORT}/${AIVEN_DB_NAME}?sslmode=require"
+          ./lib/liquibase/liquibase \
+            --changeLogFile=changelog.xml \
+            --url="${LIQUIBASE_URL}" \
+            --username="${AIVEN_DB_USER}" \
+            --password="${AIVEN_DB_PASSWORD}" \
+            validate
+
+      - name: Apply Liquibase updates
+        env:
+          AIVEN_DB_HOST: ${{ secrets.AIVEN_DB_HOST }}
+          AIVEN_DB_PORT: ${{ secrets.AIVEN_DB_PORT }}
+          AIVEN_DB_NAME: ${{ secrets.AIVEN_DB_NAME }}
+          AIVEN_DB_USER: ${{ secrets.AIVEN_DB_USER }}
+          AIVEN_DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
+        run: |
+          LIQUIBASE_URL="jdbc:postgresql://${AIVEN_DB_HOST}:${AIVEN_DB_PORT}/${AIVEN_DB_NAME}?sslmode=require"
+          ./lib/liquibase/liquibase \
+            --changeLogFile=changelog.xml \
+            --url="${LIQUIBASE_URL}" \
+            --username="${AIVEN_DB_USER}" \
+            --password="${AIVEN_DB_PASSWORD}" \
+            update
