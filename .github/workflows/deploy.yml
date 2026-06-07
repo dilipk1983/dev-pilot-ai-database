@@ -25,13 +25,34 @@ jobs:
 
       - name: Validate Liquibase changelog
         env:
-          AIVEN_DB_HOST: ${{ secrets.AIVEN_DB_HOST }}
-          AIVEN_DB_PORT: ${{ secrets.AIVEN_DB_PORT }}
-          AIVEN_DB_NAME: ${{ secrets.AIVEN_DB_NAME }}
+          AIVEN_DB_URL: ${{ secrets.AIVEN_DB_URL }}
           AIVEN_DB_USER: ${{ secrets.AIVEN_DB_USER }}
           AIVEN_DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
         run: |
-          LIQUIBASE_URL="jdbc:postgresql://${AIVEN_DB_HOST}:${AIVEN_DB_PORT}/${AIVEN_DB_NAME}?sslmode=require"
+          python - <<'PY' >> "$GITHUB_ENV"
+          import os
+          import re
+          raw = os.environ.get("AIVEN_DB_URL", "").strip()
+          if not raw:
+              raise ValueError("AIVEN_DB_URL is not set")
+
+          if raw.startswith("jdbc:postgresql://"):
+              match = re.match(r"jdbc:postgresql://([^:/?#]+)(?::(\d+))?/([^?]+)", raw)
+              if not match:
+                  raise ValueError("AIVEN_DB_URL is not a valid JDBC PostgreSQL URL")
+              host, port, dbname = match.groups()
+          else:
+              from urllib.parse import urlparse
+              parsed = urlparse(raw)
+              host = parsed.hostname or ""
+              port = str(parsed.port or 5432)
+              dbname = parsed.path.lstrip("/") or ""
+              if not host or not dbname:
+                  raise ValueError("AIVEN_DB_URL must contain host and database name")
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as fh:
+              fh.write(f"LIQUIBASE_URL=jdbc:postgresql://{host}:{port}/{dbname}?sslmode=require\n")
+          PY
           ./lib/liquibase/liquibase \
             --changeLogFile=changelog.xml \
             --url="${LIQUIBASE_URL}" \
@@ -41,13 +62,34 @@ jobs:
 
       - name: Apply Liquibase updates
         env:
-          AIVEN_DB_HOST: ${{ secrets.AIVEN_DB_HOST }}
-          AIVEN_DB_PORT: ${{ secrets.AIVEN_DB_PORT }}
-          AIVEN_DB_NAME: ${{ secrets.AIVEN_DB_NAME }}
+          AIVEN_DB_URL: ${{ secrets.AIVEN_DB_URL }}
           AIVEN_DB_USER: ${{ secrets.AIVEN_DB_USER }}
           AIVEN_DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
         run: |
-          LIQUIBASE_URL="jdbc:postgresql://${AIVEN_DB_HOST}:${AIVEN_DB_PORT}/${AIVEN_DB_NAME}?sslmode=require"
+          python - <<'PY' >> "$GITHUB_ENV"
+          import os
+          import re
+          raw = os.environ.get("AIVEN_DB_URL", "").strip()
+          if not raw:
+              raise ValueError("AIVEN_DB_URL is not set")
+
+          if raw.startswith("jdbc:postgresql://"):
+              match = re.match(r"jdbc:postgresql://([^:/?#]+)(?::(\d+))?/([^?]+)", raw)
+              if not match:
+                  raise ValueError("AIVEN_DB_URL is not a valid JDBC PostgreSQL URL")
+              host, port, dbname = match.groups()
+          else:
+              from urllib.parse import urlparse
+              parsed = urlparse(raw)
+              host = parsed.hostname or ""
+              port = str(parsed.port or 5432)
+              dbname = parsed.path.lstrip("/") or ""
+              if not host or not dbname:
+                  raise ValueError("AIVEN_DB_URL must contain host and database name")
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as fh:
+              fh.write(f"LIQUIBASE_URL=jdbc:postgresql://{host}:{port}/{dbname}?sslmode=require\n")
+          PY
           ./lib/liquibase/liquibase \
             --changeLogFile=changelog.xml \
             --url="${LIQUIBASE_URL}" \
