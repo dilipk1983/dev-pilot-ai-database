@@ -29,32 +29,11 @@ jobs:
           AIVEN_DB_USER: ${{ secrets.AIVEN_DB_USER }}
           AIVEN_DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
         run: |
-          LIQUIBASE_URL="$(python - <<'PY'
-          import os
-          import re
-          from urllib.parse import urlparse
-
-          raw = os.environ.get("AIVEN_DB_URL", "").strip()
-          if not raw:
-              raise ValueError("AIVEN_DB_URL is not set")
-
-          if raw.startswith("jdbc:postgresql://"):
-              match = re.match(r"jdbc:postgresql://([^:/?#]+)(?::(\d+))?/([^?]+)", raw)
-              if not match:
-                  raise ValueError("AIVEN_DB_URL is not a valid JDBC PostgreSQL URL")
-              host, port, dbname = match.groups()
-          else:
-              parsed = urlparse(raw)
-              host = parsed.hostname or ""
-              port = str(parsed.port or 5432)
-              dbname = parsed.path.lstrip("/") or ""
-              if not host or not dbname:
-                  raise ValueError("AIVEN_DB_URL must contain host and database name")
-
-          print(f"jdbc:postgresql://{host}:{port}/{dbname}?sslmode=require")
-          PY
-          )"
-          echo "Using Liquibase URL: ${LIQUIBASE_URL}"
+          LIQUIBASE_URL="$(python -c 'import os,re; from urllib.parse import urlparse; raw=os.environ.get("AIVEN_DB_URL", "").strip(); 
+          assert raw, "AIVEN_DB_URL is not set"; 
+          m=re.match(r"jdbc:postgresql://([^:/?#]+)(?::(\d+))?/([^?]+)", raw) if raw.startswith("jdbc:postgresql://") else None; 
+          host, port, dbname = (m.groups() if m else (urlparse(raw).hostname or "", str(urlparse(raw).port or 5432), urlparse(raw).path.lstrip("/"))); 
+          print(f"jdbc:postgresql://{host}:{port}/{dbname}?sslmode=require")')"
           ./lib/liquibase/liquibase \
             --changeLogFile=changelog.xml \
             --url="${LIQUIBASE_URL}" \
@@ -68,32 +47,11 @@ jobs:
           AIVEN_DB_USER: ${{ secrets.AIVEN_DB_USER }}
           AIVEN_DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
         run: |
-          LIQUIBASE_URL="$(python - <<'PY'
-          import os
-          import re
-          from urllib.parse import urlparse
-
-          raw = os.environ.get("AIVEN_DB_URL", "").strip()
-          if not raw:
-              raise ValueError("AIVEN_DB_URL is not set")
-
-          if raw.startswith("jdbc:postgresql://"):
-              match = re.match(r"jdbc:postgresql://([^:/?#]+)(?::(\d+))?/([^?]+)", raw)
-              if not match:
-                  raise ValueError("AIVEN_DB_URL is not a valid JDBC PostgreSQL URL")
-              host, port, dbname = match.groups()
-          else:
-              parsed = urlparse(raw)
-              host = parsed.hostname or ""
-              port = str(parsed.port or 5432)
-              dbname = parsed.path.lstrip("/") or ""
-              if not host or not dbname:
-                  raise ValueError("AIVEN_DB_URL must contain host and database name")
-
-          print(f"jdbc:postgresql://{host}:{port}/{dbname}?sslmode=require")
-          PY
-          )"
-          echo "Using Liquibase URL: ${LIQUIBASE_URL}"
+          LIQUIBASE_URL="$(python -c 'import os,re; from urllib.parse import urlparse; raw=os.environ.get("AIVEN_DB_URL", "").strip(); 
+          assert raw, "AIVEN_DB_URL is not set"; 
+          m=re.match(r"jdbc:postgresql://([^:/?#]+)(?::(\d+))?/([^?]+)", raw) if raw.startswith("jdbc:postgresql://") else None; 
+          host, port, dbname = (m.groups() if m else (urlparse(raw).hostname or "", str(urlparse(raw).port or 5432), urlparse(raw).path.lstrip("/"))); 
+          print(f"jdbc:postgresql://{host}:{port}/{dbname}?sslmode=require")')"
           ./lib/liquibase/liquibase \
             --changeLogFile=changelog.xml \
             --url="${LIQUIBASE_URL}" \
